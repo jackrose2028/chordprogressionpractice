@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chord Progression Practice</title>
+    <style>
+:root {
+    --bg-color: #121212;
+    --surface-color: #1e1e1e;
+    --primary-color: #bb86fc;
+    --primary-variant-color: #3700b3;
+    --secondary-color: #03dac6;
+    --on-bg-color: #e0e0e0;
+    --on-surface-color: #ffffff;
+    --border-color: #333;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--on-bg-color);
+    margin: 0;
+    line-height: 1.6;
+}
+
+#app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    color: var(--on-surface-color);
+    font-weight: 700;
+}
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+#search-input, #category-filter {
+    background-color: var(--surface-color);
+    color: var(--on-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+}
+
+#search-input::placeholder {
+    color: #888;
+}
+
+#progression-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.progression-card {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.progression-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    border-color: var(--primary-color);
+}
+
+.progression-card h3 {
+    margin: 0 0 0.5rem;
+    color: var(--primary-color);
+}
+
+.progression-card .category {
+    font-size: 0.9rem;
+    background-color: var(--primary-variant-color);
+    color: var(--on-surface-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.progression-card .chords {
+    font-family: monospace;
+    font-size: 1.1rem;
+    background-color: var(--bg-color);
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.progression-card .description {
+    font-size: 0.95rem;
+    color: #b0b0b0;
+}
+
+.roman-numerals {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    margin: 0.5rem 0 1rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.roman-numerals-card {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+    margin: 0.5rem 0;
+    font-weight: 600;
+}
+
+.transpose-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.transpose-controls label {
+    font-weight: 600;
+    color: var(--on-surface-color);
+}
+
+#key-select {
+    background-color: var(--surface-color);
+    color: var(--on-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: var(--surface-color);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    position: relative;
+    box-shadow: 0 5px 20px var(--shadow-color);
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--on-bg-color);
+    font-size: 2rem;
+    cursor: pointer;
+}
+
+.practice-area {
+    background-color: var(--bg-color);
+    padding: 2rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    text-align: center;
+}
+
+#chords-display {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.chord-box {
+    font-size: clamp(1rem, 4vw, 2rem);
+    font-weight: bold;
+    color: #999;
+    padding: 0.5rem;
+    transition: color 0.2s, transform 0.2s;
+    min-width: 3rem;
+    text-align: center;
+    border-radius: 4px;
+    background-color: var(--surface-color);
+}
+
+.chord-box.active {
+    color: var(--secondary-color);
+    transform: scale(1.2);
+}
+
+.beat-indicator-container {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    height: 20px;
+}
+
+.beat-indicator {
+    width: 16px;
+    height: 16px;
+    background-color: #444;
+    border-radius: 50%;
+    transition: background-color 0.1s, transform 0.1s;
+}
+.beat-indicator.active {
+    background-color: var(--secondary-color);
+    transform: scale(1.2);
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+#play-pause-btn {
+    background-color: var(--primary-color);
+    color: var(--on-surface-color);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#play-pause-btn:hover {
+    background-color: var(--primary-variant-color);
+}
+
+.bpm-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+#bpm-slider {
+    width: 150px;
+}
+
+#piano-keyboard {
+    position: relative;
+    margin: 2rem 0;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+}
+
+.white-keys {
+    display: flex;
+    gap: 1px;
+}
+
+.black-keys {
+    position: absolute;
+    top: 0;
+    display: flex;
+    gap: 1px;
+    pointer-events: none;
+}
+
+.piano-key {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 0 0 4px 4px;
+}
+
+.white-key {
+    width: 24px;
+    height: 120px;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    color: #333;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    font-size: 10px;
+    pointer-events: all;
+}
+
+.black-key {
+    width: 16px;
+    height: 75px;
+    background-color: #2a2a2a;
+    border: 1px solid #1a1a1a;
+    margin-left: 16px;
+    color: #fff;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 4px;
+    font-size: 8px;
+    pointer-events: all;
+}
+
+.black-key:first-child {
+    margin-left: 16px;
+}
+
+.piano-key:hover {
+    transform: translateY(2px);
+}
+
+.piano-key.active {
+    background-color: var(--secondary-color) !important;
+    color: #000 !important;
+    transform: translateY(2px);
+    box-shadow: 0 2px 8px rgba(3, 218, 198, 0.4);
+}
+</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Chord Progression Practice</h1>
+            <div class="filters">
+                <input type="text" id="search-input" placeholder="Search progressions...">
+                <select id="category-filter">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+        </header>
+        <main id="progression-list"></main>
+    </div>
+
+    <div id="practice-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="close-button" id="close-modal">&times;</button>
+            <h2 id="practice-name"></h2>
+            <div class="roman-numerals" id="roman-numerals"></div>
+            <p id="practice-description"></p>
+            <div class="transpose-controls">
+                <label for="key-select">Key: </label>
+                <select id="key-select">
+                    <option value="C">C</option>
+                    <option value="C#">C#</option>
+                    <option value="D">D</option>
+                    <option value="D#">D#</option>
+                    <option value="E">E</option>
+                    <option value="F">F</option>
+                    <option value="F#">F#</option>
+                    <option value="G">G</option>
+                    <option value="G#">G#</option>
+                    <option value="A">A</option>
+                    <option value="A#">A#</option>
+                    <option value="B">B</option>
+                </select>
+            </div>
+            <div class="practice-area">
+                <div id="chords-display"></div>
+                <div id="piano-keyboard"></div>
+                <div class="beat-indicator-container">
+                    <div class="beat-indicator" id="beat-1"></div>
+                    <div class="beat-indicator" id="beat-2"></div>
+                    <div class="beat-indicator" id="beat-3"></div>
+                    <div class="beat-indicator" id="beat-4"></div>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="play-pause-btn">Play</button>
+                <div class="bpm-control">
+                    <label for="bpm-slider">BPM: <span id="bpm-value">120</span></label>
+                    <input type="range" id="bpm-slider" min="40" max="240" value="120">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+const D = (() => {
+const rawData = `
+Name	Category	Chords	Description
+I–♭VII–IV Anthem (A)	AC/DC	A|G|D|A	Mixolydian rock hook; power-chord drive with open-string bass in A.
+I–IV–V Stomp (A)	AC/DC	A|D|E|A	Core hard-rock cadence; straight eighths with backbeat hits.
+I–V–IV Hook (A)	AC/DC	A|E|D|A	V to IV swap tightens the turnaround; classic riff chassis.
+I–♭VII Vamp (A)	AC/DC	A|G|A|G	Two-chord Mixolydian vamp; space for vocal call-and-response.
+I–♭VI–♭VII–I (A)	AC/DC	A|F|G|A	Aeolian borrowed bVI→bVII lift into a stadium-style return.
+♭VII–IV–I–V (A)	AC/DC	G|D|A|E	Double-plagal setup into a hard V; archetypal rock square.
+I–IV–I–V (A)	AC/DC	A|D|A|E	Plagal bounce before the dominant; strong verse frame.
+I–IV–♭VII–IV (A)	AC/DC	A|D|G|D	IV toggles with bVII; crunchy mid-tempo groove.
+I–I/III–IV–V Walk-Up (A)	AC/DC	A|A/C#|D|E	Bass walk-up into IV then V; tight pre-chorus lift.
+Tag: I–V–I–I (A)	AC/DC	A|E|A|A	Simple stop-time tag to extend an ending.
+I–♭VII–IV Anthem (E)	AC/DC	E|D|A|E	Open-string E riffs with low-E pedal; signature texture.
+bIII Borrowed	Advanced	C|Eb|F|C	Borrowed from minor; tonic substitute. C Aeolian/C Minor Scale over bIII
+ii° Pre-dominant	Advanced	C|Ddim|G|C	Borrowed from Aeolian; pre-dominant tension. C Harmonic Minor over ii°
+Neapolitan bII	Advanced	C|Db|G|C	Pre-dominant, dramatic, resolves to V. C Phrygian/C Neapolitan scale over bII
+iv+ Augmented Subdominant	Advanced	C|F+|G|C	Chromatic subdominant leading to V. C Major/C Lydian over iv+
+Borrowed Tonic Minor	Advanced	Cm|Fm|G|Cm	Parallel minor coloration. C Aeolian/C Minor Pentatonic
+V7b9 Strong Dominant	Advanced	C|G7b9|C	Borrowed from minor; stronger dominant. C Harmonic Minor/C Phrygian Dominant
+V7#9 Blues Color	Advanced	C|G7#9|C	Blues/jazz color; altered dominant. C Mixolydian b9 #9/C Blues Scale
+V7b5 Altered	Advanced	C|G7b5|C	Altered dominant, chromatic tension. C Altered Scale/C Super Locrian
+bVII7 Dominant Sub	Advanced	C|Bb7|F|C	Dominant substitute; blues/gospel. C Mixolydian/C Major Pentatonic over bVII7
+Tritone Substitution	Advanced	C|Db7|C	Jazz device: replace V with bII7. C Lydian Dominant/C Altered
+ii-V Tritone Sub	Advanced	C|Db7|Gb7|C	Replace iiâ€“V with biiâ€“bV. C Altered/C Harmonic Minor
+Algerian i–♭VI–V Cadence (E)	Algerian Scale	Em|C|B|Em	Core cadence from E Algerian (E–F#–G–A#–B–C–D#): minor tonic, ♭VI, then bright V.
+Raised-4 Color Vamp (E)	Algerian Scale	Em(add2)|C|Bsus4|Em	Add2 supplies 2̂; V as sus4 avoids out-of-set 3rds while implying #4 color.
+i(mMaj7) Resolution (E)	Algerian Scale	EmMaj7|B|Em|Em	Minor-major 7th tonic (uses leading tone 7̂) into a triadic V.
+VImaj7 → V → i (E)	Algerian Scale	Cmaj7|B|Em|Em	Diatonic ♭VImaj7 (contains 7̂) heightens the authentic close.
+i–vii–V–i (E)	Algerian Scale	Em|D#m|B|Em	vii as minor triad (D#–F#–A#) is fully diatonic; strong pull into V.
+i–♭VI–vii–V (E)	Algerian Scale	Em|C|D#m|B	Chromatic-feeling inner voice from ♭VI to vii to V.
+i–V–♭VI–V–i (E)	Algerian Scale	Em|B|C|B|Em	Rock-solid refrain that spotlights the augmented-2 flavor (♭VI↔7̂).
+Add2→VImaj7→Vsus→i(mMaj7) (E)	Algerian Scale	Em(add2)|Cmaj7|Bsus4|EmMaj7	Coloristic version that keeps every sonority in-set.
+i–♭VI–i–V (E)	Algerian Scale	Em|C|Em|B	Simple verse loop with a declarative dominant send-off.
+E-Pedal Orchestration (E)	Algerian Scale	Esus2|C|Bsus4|Em	Upper structures over an E pedal; avoids non-diatonic 3rds.
+Algerian i–♭VI–V Cadence (A)	Algerian Scale	Am|F|E|Am	In A Algerian (A–B–C–D#–E–F–G#): minor tonic, ♭VI, bright V.
+vi-V-IV-III	Alternative	Am|G|F|Em	Descending alternative progression
+I-V-vi-IV (Sus)	Alternative	Csus2|G|Amsus2|F	I-V-vi-IV with suspended chords
+vi-IV-I-V (Sus)	Alternative	Amsus2|F|Csus2|G	vi-IV-I-V with suspended chords
+I-vi-IV-V (Sus)	Alternative	C|Amsus2|F|Gsus2	I-vi-IV-V with suspended chords
+Post-Rock	Alternative	Em|C|G|D|Am|C|G|B	Cinematic post-rock
+Shoegaze	Alternative	Fmaj7|Cmaj7|Gmaj7|Am7	Dreamy shoegaze progression
+Grunge	Alternative	G5|Bb5|C5|F5	Grunge power chord progression
+Emo	Alternative	Em|C|G|D	Emotional hardcore progression
+Post-Hardcore	Alternative	Am|F|C|G	Post-hardcore complexity
+Screamo	Alternative	Dm|Bb|F|C	Screamo progression
+Math Rock	Alternative	Em|F#dim|G|Am|B	Complex math rock
+i-VI-iv-v (Ambient Minor)	Ambient	Am|F|Dm|Em	Spacious and atmospheric minor progression
+I-IV-vi-V (Ambient Major)	Ambient	C|F|Am|G	Dreamy and open major progression
+Open Sky	Ambient	D|G|Bm|A	Expansive and uplifting major loop
+Dorian Drift	Ambient	Dm|G|C|Am	Floating modal Dorian sound
+Ethereal Major	Ambient	G|D|Em|C	Bright cinematic atmosphere
+Suspended Dream	Ambient	C|Csus2|F|Fsus4	Suspended, timeless feel
+Celestial Cycle	Ambient	F|C|Am|G	Dreamlike flowing cycle
+Lydian Light	Ambient	Cmaj7|D|G|Cmaj7	Lydian-inspired dreamy colors
+Halo Progression	Ambient	Bb|F|Gm|Eb	Warm and halo-like tonal blend
+Serene Motion	Ambient	E|B|C#m|A	Calm and uplifting atmosphere
+Ascending Drift	Ambient	Am|C|Dm|F	Slowly rising airy chords
+Andalusian stepwise bass	Andalusian	Am|G|F|E7	V7 chord intensifies resolution.
+Andalusian modal interchange	Andalusian	Am|G|F|D7	Secondary dominant on V adds motion.
+Andalusian with V7sus4	Andalusian	Am|G|F|E7sus4	Suspended dominant delays cadence.
+Andalusian with chromatic iv	Andalusian	Am|G|F#dim|E	Passing diminished creates tension before V.
+Andalusian descending 7ths	Andalusian	Am7|G7|Fmaj7|E7	Enriched 7th chords for jazz flavor.
+Andalusian with passing VI	Andalusian	Am|G|F|F#dim|E	Chromatic passing diminished between VI and V.
+Andalusian minor iv prolong	Andalusian	Am|G|Fm|E7	Borrowed iv prolongs subdominant color.
+Andalusian double V7	Andalusian	Am|G|F|B7|E7	Secondary dominant chain leading to tonic.
+Andalusian with bII tritone	Andalusian	Am|G|F|Db7|E	Tritone sub adds tension to V.
+Andalusian with passing iii	Andalusian	Am|G|Em|F|E	Stepwise mediant passing chord.
+Andalusian with augmented V	Andalusian	Am|G|F|E+	Augmented dominant before resolving to tonic.
+12-Bar Quick-Change (G)	Bluegrass	G|C|G|G|C|C|G|G|D|C|G|D	Standard 12-bar with bar-2 IV "quick change"; common for vocal bluesy numbers.
+8-Bar Quick-Change (G)	Bluegrass	G|C|G|G|C|C|G|D	Compact 8-bar variant; strong setup to turnaround.
+Classic Tag Ending (G)	Bluegrass	G|D|G|G	Two-bar V→I tag repeated; use to extend final chorus.
+"Salty Dog" Circle (G)	Bluegrass	G|E7|A7|D7|G	Ragtime circle-of-fifths (I–VI7–II7–V7–I); bright, jazzy color.
+Plagal→Dominant Cadence (G)	Bluegrass	G|D|G|C|G|D|G	Alternates IV and V around I; drives call-and-response phrasing.
+Mixolydian bVII Vamp (G)	Bluegrass	G|F|G|F|G|F|G|D	Modal flavor (♭VII); common in fiddle tunes and reels.
+Walk-Up to IV then V (G)	Bluegrass	G|G/B|C|D|G	Bass line walk-up (1–3–4); strong lead-in to chorus.
+12-Bar Quick-Change (A)	Bluegrass	A|D|A|A|D|D|A|A|E|D|A|E	Classic 12-bar with quick IV; driving verses.
+8-Bar Quick-Change (A)	Bluegrass	A|D|A|A|D|D|A|E	Tight eight-bar form; works for instrumentals.
+Classic Tag Ending (A)	Bluegrass	A|E|A|A	V→I tag; extend last line of lyrics or breaks.
+"Salty Dog" Circle (A)	Bluegrass	A|F#7|B7|E7|A	Ragtime circle in A; bright turnaround.
+12-Bar Blues (Basic)	Blues	C|C|C|C|F|F|C|C|G|F|C|G	Standard 12-bar blues progression
+12-Bar Blues (7ths)	Blues	C7|C7|C7|C7|F7|F7|C7|C7|G7|F7|C7|G7	12-bar blues with dominant 7ths
+Quick Change Blues	Blues	C7|F7|C7|C7|F7|F7|C7|C7|G7|F7|C7|G7	12-bar with quick IV chord change
+Minor Blues	Blues	Cm|Cm|Cm|Cm|Fm|Fm|Cm|Cm|G7|Fm|Cm|G7	Minor key blues progression
+Stormy Monday	Blues	C7|F7|C7|Gm7|F7|F7|Em7|A7|Dm7|G7|Em7|A7	Jazz blues progression
+Bird Blues	Blues	Cmaj7|Fm7|C7|C7|F7|F7|C7|Em7|A7|Dm7|G7|Em7	Charlie Parker blues
+Jazz Blues I-VI-II-V	Blues	C7|A7|Dm7|G7|C7|F7|C7|A7|Dm7|G7|C7|G7	Bebop-inspired jazz blues
+Chicago Blues	Blues	E7|A7|E7|E7|A7|A7|E7|E7|B7|A7|E7|B7	Chicago-style blues
+Texas Shuffle	Blues	A7|D7|A7|A7|D7|D7|A7|E7|D7|A7|E7|A7	Texas shuffle groove
+Gospel Blues	Blues	C7|F7|C7|Am7|D7|G7|C7|F7|C7|G7|C7|G7	Gospel-infused 12-bar blues
+Modern Blues Minor	Blues	Am7|D9|Am7|Am7|Dm7|Dm7|Am7|Am7|E7|Dm7|Am7|E7	Modern minor-blues
+Imaj7-IVmaj7-vii°-iii-vi	Bossa Nova	Cmaj7|Fmaj7|Bm7b5|Em7|Am7	Smooth bossa nova progression
+ii-V-I-vi (Bossa)	Bossa Nova	Dm7|G7|Cmaj7|Am7	Bossa nova jazz progression
+Jobim Cycle	Bossa Nova	Fmaj7|G13|Gm7|C7	Typical Jobim turnaround
+Desafinado Loop	Bossa Nova	F#m7b5|B7|Em7|A7	Inspired by "Desafinado"
+Wave Progression	Bossa Nova	D7|G7|Cmaj7|A7	Progression used in "Wave"
+Triste Feel	Bossa Nova	Am7|D7|Gmaj7|C#7b9	Triste-style chord loop
+Girl from Ipanema	Bossa Nova	Fmaj7|G7|Gm7|F#7b13	Iconic bossa nova sequence
+Samba Jazz	Bossa Nova	E7|A7|Dmaj7|Gmaj7	Samba-jazz fusion cycle
+Dorian Bossa	Bossa Nova	Dm7|G13|Cmaj7|A7	Minor ii–V–I movement
+Latin Walk	Bossa Nova	Cmaj7|E7|Am7|D7	Walking jazz-bossa cadence
+Smooth Turnaround	Bossa Nova	Fmaj7|E7|Am7|Ab7	Chromatic turnaround
+Gong–Zhi Cadence (C)	Chinese Style	C|Gsus4|Am|Gsus2	Major-pentatonic "gong" center (I) with suspended "zhi" dominant; avoids leading tone for folk clarity.
+Bamboo Plagal (C)	Chinese Style	C|Cadd2|Am|G5	I→I(add2)→vi→V(5); add2 and power-5ths preserve pentatonic color.
+Lantern Verse (C)	Chinese Style	C|Am|G5|C	I→vi→V(5)→I; simple verse loop with open fifths.
+Zhi Drone (C)	Chinese Style	C/G|Gsus2|Am|C	I over 5-pedal; sus2 dominant keeps a pentatonic surface.
+River Pentatonic (C)	Chinese Style	C|Em|Am|G5	I→iii→vi→V(5); bright lift then grounded cadence.
+Open-Fifth Return (C)	Chinese Style	C5|G5|Am|C5	Parallel fifths + minor vi for a rustic refrain.
+Gong–Yu Mix (C)	Chinese Style	C|Am|Cadd2|G5	Major I blends with relative-minor vi; add2 keeps 2̂ present.
+Shimmer Add2 (C)	Chinese Style	Cadd2|Am7|Gsus2|C	Suspensions and 7ths without strong leading tone.
+Zhi→Gong Turn (C)	Chinese Style	Gsus2|C|Am|Gsus4	Dominant sus2/sus4 cradles the I and vi.
+Folk Circle (C)	Chinese Style	C|G|Am|Em	Common Mandopop loop; pentatonic melodies sit naturally.
+Gong–Zhi Cadence (D)	Chinese Style	D|Asus4|Bm|Asus2	I→V(sus)→vi→V(sus); suspended V shapes "zhi".
+Zhi Drone (E)	Chinese Style	E/B|Bsus2|C#m|E	Tonic with fifth-pedal; soft V shapes.
+Open-Fifth Return (E)	Chinese Style	E5|B5|C#m|E5	Fifths keep the pentatonic surface intact.
+Yu Descent (A minor)	Chinese Style	Am|G|F|Esus4	i→♭VII→♭VI→V(sus); minor-pentatonic "yu" descent with suspended dominant.
+Yu Plagal (A minor)	Chinese Style	Am|Dsus2|Am|Gsus2	i framed by pentatonic sus-IV and sus-♭VII.
+Yu Drone (A minor)	Chinese Style	Am/E|Gsus2|Am|Dsus2	5-pedal on i; suspended neighbors outline folk contour.
+Yu Fifths Return (A minor)	Chinese Style	Am|G5|F|Am	Open fifth V/VII movement with warm ♭VI.
+Yu Descent (E minor)	Chinese Style	Em|D|C|Bsus4	i→♭VII→♭VI→V(sus); pentatonic melody avoids strong 7̂.
+Yu Plagal (E minor)	Chinese Style	Em|Asus2|Em|Dsus2	i framed by sus-IV and sus-♭VII; airy, modal cadence.
+Yu Drone (E minor)	Chinese Style	Em/B|Dsus2|Em|Asus2	5-pedal supports pentatonic line shapes.
+Yu Fifths Return (E minor)	Chinese Style	Em|D5|C|Em	Fifths + minor VI close for rustic color.
+Yu Descent (D minor)	Chinese Style	Dm|C|Bb|A5	i→♭VII→♭VI→V(5); neutral dominant keeps pentatonic surface.
+Canon in D	Classical	C|G|Am|Em|F|C|F|G	Based on Pachelbel's Canon
+Circle of Fifths	Classical	C|F|Bb|Eb|Ab|Db|Gb|B|E|A|D|G	Full circle of fifths progression
+i-V-i-iv-VII (Minor Cadence)	Classical	Am|E|Am|Dm|E|Am	Classic minor key cadence
+I-IV-V-I (Major Cadence)	Classical	C|F|G|C	Perfect cadence in a major key
+Neapolitan Progression	Classical	Am|Bb|E7|Am	Dramatic Neapolitan (bII) chord
+Pachelbel Variation	Classical	D|A|Bm|F#m|G|D|G|A	Variation on Canon in D
+Bach Chorale	Classical	C|F|G|C|Am|Dm|G|C	Bach chorale style
+Beethoven Style	Classical	C|G7|C|F|C|G|C	Classical period style
+Mozart Sonata	Classical	C|G|Am|F|C|G|C	Mozart sonata progression
+Romantic Period	Classical	Am|F|C|G|Em|Am	Romantic era progression
+Impressionist	Classical	Cmaj7|Dm7|Em7|Fmaj7	Impressionist harmony
+I-I-I-I-IV-IV-I-I-V-V-I-I	Country	C|C|C|C|F|F|C|C|G|G|C|C	Traditional country progression
+I-V-I-I-IV-I-V-V	Country	C|G|C|C|F|C|G|G	Country shuffle progression
+vi-V-IV-I (Country Pop)	Country	Am|G|F|C	Modern country pop progression
+Bluegrass	Country	G|C|G|D|G	Traditional bluegrass
+Outlaw Country	Country	E|A|B|E	Outlaw country progression
+Country Rock	Country	A|D|E|A	Country rock hybrid
+Honky Tonk	Country	C|C7|F|G7	Honky tonk piano style
+Country Ballad	Country	G|Em|C|D|G	Emotional country ballad
+Western Swing	Country	C|E7|F|G7	Western swing progression
+Folk Country	Country	D|G|A|D	Folk-influenced country
+Honky Tonk Swing	Country	A|D|E7|A	Swinging honky tonk style
+Phrygian Chug (Drop D)	Djent	D5|Eb5|D5|C5|D5|C5|Bb5|C5	b2 pedal assaults around D; classic djent phrygian grind.
+Tritone Toggle (Drop D)	Djent	D5|Ab5|D5|Ab5|D5|Ab5|C5|Bb5	Tritone axis with secondary drops; angular, heavy symmetry.
+3–3–2 Pedal Stabs (Drop D)	Djent	D5|F5|D5|E5|D5|C#5|D5|E5	Seven-beat cell implied (3+3+2) over straight bars.
+Octave-Drop Syncopation (Drop D)	Djent	D5|C5|D5|Bb5|C5|D5|Ab5|D5	Semitone–minor-third pivots against D pedal.
+♭VI–♭II Punch (Drop D)	Djent	D5|Bb5|Eb5|D5|Bb5|C5|D5|Eb5	Modal mixture cadence: bVI→bII→I thrusts.
+Sus2 Grind (Drop D)	Djent	Dsus2|Csus2|Dsus2|Eb5|Dsus2|Csus2|Bb5|C5	Open-string sus2 color with phrygian b2 hits.
+Minor-Second Ladder (Drop D)	Djent	D5|Eb5|E5|F5|E5|Eb5|D5|C#5	Chromatic stepwise "ladder" built from m2 cells.
+5-over-4 Cell (Drop D)	Djent	D5|F5|E5|C5|Db5|D5|F5|E5	Repeating five-note accent group over common time.
+Locrian Swipe (Drop D)	Djent	D5|Eb5|Gb5|C5|Db5|C5|B5|C5	b2 and b5 emphasize locrian bite around D.
+b2 Slide Hook (Drop D)	Djent	D5|Eb5|D5|Eb5|D5|C5|Bb5|A5	Alternating b2 slides; wider fall to A before reset.
+Phrygian Doom Grid (Drop C)	Djent	C5|Db5|C5|Bb5|Ab5|Bb5|C5|Db5	Tight b2/b7 lattice; archetypal low-C chug.
+Trance Buildup	Electronic	Am|F|C|G|Am|F|G|Am	Classic trance progression
+Progressive House	Electronic	Am|Em|F|G	Progressive house buildup
+Ambient Pad	Electronic	Cmaj7|Fmaj7|Am7|Gmaj7	Ambient pad progression
+Dubstep Drop	Electronic	Dm|Bb|Gm|A7	Dubstep drop progression
+Synthwave	Electronic	Am|F|G|Em	80s synthwave progression
+Chillout	Electronic	Fmaj7|G7|Em7|Am7	Chillout/downtempo
+Techno Loop	Electronic	Cm|Gm|Cm|Gm	Minimal techno loop
+UK Garage	Electronic	Bm|F#m|G|A	UK garage progression
+Future Bass	Electronic	F|Am|Bb|C	Future bass chord progression
+Chillwave	Electronic	Dm7|Gmaj7|Cmaj7|Fmaj7	Chillwave nostalgia
+Vaporwave	Electronic	Dmaj7|Gmaj7|Cmaj7|Fmaj7	Vaporwave aesthetic
+i-iv-v-VI (Cinematic Minor)	Film Score	Am|Dm|Em|F	Tense and dramatic minor film progression
+Lydian I-II-I	Modal	C|D|C	Bright Lydian with major II
+Mixolydian I-bVII-IV	Modal	G|F|C	Classic Mixolydian rock progression
+Locrian i°-bII-biii	Modal	Bm7b5|C|Dm	Unstable Locrian progression
+Dorian Vamp	Modal	Dm|G|Dm|G	i-V Dorian vamp
+Lydian Dominant	Modal	G7#11|C	Lydian dominant resolution
+Phrygian Dominant	Modal	E|F|G|Am	Spanish/Middle Eastern progression
+Mixolydian Blues	Modal	A7|D7|G7|A7	Mixolydian-based blues
+Aeolian i-bVII-i	Modal	Em|D|Em	Minor natural modal loop
+Mixolydian i-IV-bVII	Modal	G|C|F	Mixolydian rock/folk feel
+Plagal Turn (G)	Neil Young	G|C|G|D	Plagal bounce before strong dominant setup.
+Country IV Frame (G)	Neil Young	G|C|F|C	IV toggles with borrowed subdominant; rootsy sway.
+Minor Sunbeam (G)	Neil Young	G|Am|C|G	Aeolian hint via ii-minor; wistful refrain.
+River Road (G)	Neil Young	G|C|Am|D	Folk progression with minor pre-dominant.
+Back-Porch Walkup (G)	Neil Young	G|D/F#|Em|C	Bass walkup 1–3–6–4; open-string shimmer.
+Open-Ring Add9 (G)	Neil Young	G|Cadd9|G|D	Cadd9 color against ringing G.
+Borrowed iv Color (G)	Neil Young	G|Cm|G|D	Modal-mixture iv adds poignancy.
+Ragged Glory Rise (G)	Neil Young	G|Bb|C|G	bIII hit to IV; gritty, anthemic lift.
+Homestead Bass Walk (G)	Neil Young	G|D|G/B|C	Stepwise bass 1–5–3–4; verse launcher.
+Mixolydian Tag (G)	Neil Young	G|F|G|C	bVII jab then plagal lean.
+Wind-Waltz Loop (G)	Neil Young	G|C|D|C	4-bar loop with falling plagal close.
+Harmonic Minor Cadence (Am)	Neoclassical	Am|Dm|E7|Am	Core i–iv–V–i using harmonic-minor V; archetypal classical close.
+Phrygian Dominant Close (Am)	Neoclassical	Am|G|F|E7b9|Am	Aeolian descent with V(♭9) for heightened pull to i.
+Neapolitan to V (Am)	Neoclassical	Am|Bb|E|Am	♭II (Neapolitan) moving to V→i; dramatic pre-dominant.
+German +6 as ♭VI7 (Am)	Neoclassical	Am|F7|E|Am	Ger+6 rendered as ♭VI7 resolving by semitone to V→i.
+Italianate Augmented Triad (Am)	Neoclassical	Am|F+|E|Am	Augmented triad on ♭VI as +6 surrogate leading to V→i.
+Leading-Tone Diminished (Am)	Neoclassical	Am|G#dim7|E7|Am	vii°7 of i and V drive resolution; classical voice-leading.
+Chromatic Bass Cadence (Am)	Neoclassical	Am|Am/G#|Am/G|E7|Am	1–♮7–♭7–5 bass line into V→i.
+Deceptive + Plagal (C)	Neoclassical	C|G|Am|F|G|C	V→vi deceptive, then plagal and authentic closures.
+Picardy Third Resolution (Am)	Neoclassical	Am|Dm|E7|A	Minor phrase ending on I (major) for Picardy effect.
+Chromatic Mediants (Am)	Neoclassical	Am|F|Db|E|Am	Chromatic mediant pivot and altered V back to i.
+Neapolitan to V (Em)	Neoclassical	Em|F|B7|Em	♭II→V→i; stark color before authentic close.
+i-v-iv (Neo-Soul Minor)	Neo-Soul	Am7|Em7|Dm7	Smooth minor Neo-Soul groove
+Imaj7-iii7-vi7 (Neo-Soul Major)	Neo-Soul	Cmaj7|Em7|Am7	Lush major Neo-Soul progression
+vi-bVI-V-i	Neo-Soul	Am7|Abmaj7|G7|Am7	Chromatic Neo-Soul movement
+Neo-Soul Extended	Neo-Soul	Am9|D13|Gmaj7#11|Cmaj7	Extended neo-soul harmony
+Chromatic Walk	Neo-Soul	Cmaj7|Bm7|Bbmaj7|Am7	Descending chromatic voice-leading
+Lydian Flow	Neo-Soul	Fmaj7#11|G13|Cmaj7|A7	Bright Lydian-based movement
+Minor 9 Soul	Neo-Soul	Dm9|G13|Cmaj7|Am9	Minor 9 flavor
+Gospel-Soul	Neo-Soul	Cmaj7|E7|Am7|Fmaj7	Gospel-inspired soul
+Slash Soul	Neo-Soul	Fmaj7/A|G13/B|Cmaj7|Am7	Smooth bass-driven slash chords
+Quartal Soul	Neo-Soul	Dm11|G13sus|Cmaj7|Fmaj7	Quartal harmony
+Major Soul Loop	Neo-Soul	Cmaj9|Fmaj7|G13|Cmaj9	Static major loop
+I-V-vi-IV (Pop Progression)	Pop	C|G|Am|F	The most popular progression in modern music
+I-iii-vi-V	Pop	C|Em|Am|G	Pop ballad variation
+IV-I-V-vi	Pop	F|C|G|Am	Common alternative to I-V-vi-IV
+I-ii-iii-IV	Pop	C|Dm|Em|F	Ascending bassline pop progression
+I-V-vi-IV (add9)	Pop	C|G|Am|F(add9)	I-V-vi-IV with added 9th chords
+vi-IV-I-V (add9)	Pop	Am(add9)|F|C|G	vi-IV-I-V with added 9th chords
+I-vi-IV-V (add9)	Pop	C|Am(add9)|F|G(add9)	I-vi-IV-V with added 9th chords
+vi-V-I-V	Pop	Am|G|C|G	Uplifting minor pop loop
+I-vi-IV-iii	Pop	C|Am|F|Em	Soft ballad pop progression
+IV-V-I-vi	Pop	F|G|C|Am	Major lift leading to minor
+I-V-vi-V	Pop	C|G|Am|G	Catchy pop turnaround
+Hardcore Punk	Punk	A5|D5|G5|A5	Aggressive hardcore progression
+Street Punk	Punk	G5|C5|D5|G5	Street punk progression
+Crust Punk	Punk	A5|F5|C5|G5	Crust punk progression
+Anarcho Punk	Punk	E5|A5|B5|E5	Anarcho punk style
+Riot Grrrl	Punk	C5|F5|G5|Am5	Riot grrrl movement
+Classic Punk	Punk	G5|D5|A5|E5	Foundational punk chord cycle
+UK Punk	Punk	C5|Bb5|F5|C5	1970s UK punk sound
+Skate Punk	Punk	E5|B5|C#5|A5	Fast skate punk riff
+Garage Punk	Punk	A5|G5|D5|A5	Raw garage punk feel
+Melodic Hardcore	Punk	F5|Bb5|C5|D5	Hardcore with melody
+Punk Anthem	Punk	G5|C5|F5|G5	Anthemic punk energy
+I-V-vi-IV-iii-vi-ii-V	R&B	C|G|Am|F|Em|Am|Dm|G	Extended R&B progression
+Contemporary R&B	R&B	Em7|Am7|Dmaj7|Gmaj7	Modern R&B progression
+Old School R&B	R&B	C7|F7|G7|C7	Classic R&B progression
+Motown	R&B	C|Am|Dm|G	Classic Motown progression
+Smooth R&B I-vi-IV-V	R&B	Cmaj7|Am7|Fmaj7|G13	Smooth ballad feel
+Chromatic R&B	R&B	Cmaj7|Bbm7|Abmaj7|G13	Chromatic soulful movement
+Jazz-R&B Blend	R&B	Dm9|G13|Cmaj7|A7	Jazz-influenced R&B
+Bluesy R&B	R&B	Am7|D7|G7|C7	Blues-driven R&B
+i-iv-VII-III (Minor R&B)	R&B	Am7|Dm7|G|Cmaj7	Minor tonality R&B
+Simple 90s R&B	R&B	Cmaj7|Fmaj7|G13|Am7	90s R&B ballad
+Dim-Passing Soul R&B	R&B	Am7|A#dim7|Bm7|E7	Dim passing chord motion
+Rocksteady Flow	Reggae	G|C|D|G	Classic rocksteady-style
+Roots Cycle	Reggae	Dm|Gm|C|F	Minor roots reggae progression
+Roots Minor	Reggae	Em|C|D|Bm	Deep roots minor feel
+Ska Bounce	Reggae	F|Bb|C|F	Up-tempo ska bounce
+Reggae Vibe	Reggae	Bm|G|A|F#m	Smooth modern reggae
+Dub Groove	Reggae	Am|Dm|G|C	Dub-influenced roots cycle
+Nyabinghi Spirit	Reggae	Em|Am|D|G	Sacred roots-style chant backing
+Lover's Rock	Reggae	A|F#m|D|E	Smooth reggae love ballad
+Roots Deep	Reggae	Bm|A|G|F#m	Meditative roots reggae
+Sunshine Reggae	Reggae	G|Em|C|D	Bright uplifting reggae feel
+Reggae Gospel	Reggae	C|F|G|Am	Gospel-infused reggae
+I–♭VII–IV Anthem (E)	AC/DC	E|D|A|E	Open-string E riffs with low-E pedal; signature texture.
+I–IV–V Stomp (E)	AC/DC	E|A|B|E	Shuffle-ready; verse/chorus workhorse in E.
+I–V–IV Hook (E)	AC/DC	E|B|A|E	Bright hook; hits tighten around the dominant.
+I–♭VII Vamp (E)	AC/DC	E|D|E|D	Two-chord crowd-chant vamp with big stackable guitars.
+I–♭VI–♭VII–I (E)	AC/DC	E|C|D|E	Aeolian color; classic rock climb back to I.
+♭VII–IV–I–V (E)	AC/DC	D|A|E|B	Double-plagal snap into a held dominant.
+I–IV–I–V (E)	AC/DC	E|A|E|B	IV bounce then V setup; compact chorus loop.
+I–IV–♭VII–IV (E)	AC/DC	E|A|D|A	Plagal toggles and bVII color; guitar-riff friendly.
+I–I/III–IV–V Walk-Up (E)	AC/DC	E|E/G#|A|B	Bass ascent 1–3–4–5; pushes into a refrain.
+Tag: I–V–I–I (E)	AC/DC	E|B|E|E	Classic hard-stop tag for the ending.
+I–♭VII–IV Anthem (G)	AC/DC	G|F|C|G	Mixolydian in G with open-string grit; stadium-ready.
+I–IV–V Stomp (G)	AC/DC	G|C|D|G	Straight eighths; big chord hits and gaps for fills.
+ii-V Tritone Sub	Advanced	C|Db7|Gb7|C	Replace iiâ€“V with biiâ€“bV. C Altered/C Harmonic Minor
+Secondary Dominant V/V	Advanced	C|D7|G|C	Dominant of dominant. C Mixolydian/C Lydian over D7
+Secondary Dominant V/ii	Advanced	C|A7|Dm|G|C	Tonicizes ii. C Mixolydian/C Lydian over A7
+Secondary Dominant V/vi	Advanced	C|E7|Am|F|G|C	Prepares vi tonicization. C Mixolydian/C Lydian over E7
+Secondary Dominant V/IV	Advanced	C|C7|F|C	Strengthens IV arrival. C Mixolydian/C Lydian over C7
+vii°/V Leading-tone	Advanced	C|F#dim|G|C	Diminished resolves to V. C Harmonic Minor over F#°
+vii°/ii Chromatic	Advanced	C|C#dim|Dm|G|C	Chromatic pre-dominant. C Harmonic Minor/C Dorian over ii
+#i°7 Passing Chord	Advanced	C|C#dim7|Dm|G|C	Chromatic passing Iâ€“ii. C Harmonic Minor/C Diminished
+#ivo7 to V	Advanced	C|F#dim7|G|C	Passing diminished leading to V. C Harmonic Minor/C Diminished
+bVImaj7 Substitute	Advanced	C|Abmaj7|G|C	Borrowed major VI as vi substitute. C Aeolian/C Dorian over bVI
+bIImaj7 Chromatic	Advanced	C|Dbmaj7|G|C	Tritone or chromatic predominant. C Phrygian/C Neapolitan
+bIII7 Blues Sub	Advanced	C|Eb7|F|C	Blues substitution. C Mixolydian/C Major
+Algerian i–♭VI–V Cadence (A)	Algerian Scale	Am|F|E|Am	In A Algerian (A–B–C–D#–E–F–G#): minor tonic, ♭VI, bright V.
+Add2 + VImaj7 + Vsus (A)	Algerian Scale	Am(add2)|Fmaj7|Esus4|Am	All tones from the set; suspended V preserves modal bite.
+i(mMaj7) Resolution (A)	Algerian Scale	AmMaj7|E|Am|Am	Minor-major 7th tonic announces the leading tone 7̂.
+VImaj7 → V → i (A)	Algerian Scale	Fmaj7|E|Am|Am	Rich VImaj7 collapses into triadic V for a clean cadence.
+i–vii–V–i (A)	Algerian Scale	Am|G#m|E|Am	Diatonic vii as minor (G#–B–D#) glides to the dominant.
+i–♭VI–vii–V (A)	Algerian Scale	Am|F|G#m|E	Four-bar chorus emphasizing ♭6→7 motion.
+i–V–♭VI–V–i (A)	Algerian Scale	Am|E|F|E|Am	Dominant pendulum around a warm ♭VI center.
+Add2→VImaj7→Vsus→i(mMaj7) (A)	Algerian Scale	Am(add2)|Fmaj7|Esus4|AmMaj7	Color pass with all notes strictly in-set.
+i–♭VI–i–V (A)	Algerian Scale	Am|F|Am|E	Compact verse engine with decisive dominant exit.
+Asus2–VI–Vsus–i (A)	Algerian Scale	Asus2|F|Esus4|Am	Suspended shapes keep the Algerian timbre austere and open.
+Algerian i–♭VI–V Cadence (D)	Algerian Scale	Dm|Bb|A|Dm	In D Algerian (D–E–F–G#–A–Bb–C#): i→♭VI→V→i.
+Add2 + VImaj7 + Vsus (D)	Algerian Scale	Dm(add2)|Bbmaj7|Asus4|Dm	Suspensions and VImaj7 keep every chord diatonic.
+Math Rock	Alternative	Em|F#dim|G|Am|B	Complex math rock
+Post-Punk	Alternative	Am|F|G|C	Post-punk revival
+Dream Pop	Alternative	Fmaj7|Cmaj7|Am7|Gmaj7	Ethereal dream pop
+Experimental Rock	Alternative	Fm|Bb|Eb|Ab	Unconventional chord movement
+Noise Rock	Alternative	Dm|G|C|Bb	Dissonant noise rock progression
+Art Rock	Alternative	Cmaj7|G7|Fmaj7|Em7	Lush art rock harmonies
+Slowcore	Alternative	Em|Am|Dm|Bm	Minimalist slowcore chords
+Gothic Rock	Alternative	Dm|F|C|G	Dark gothic progression
+Math Pop	Alternative	Am|G|F|C|Em	Math-pop rhythmic progression
+Post-Punk Revival	Alternative	Bm|G|A|D	Angular post-punk movement
+Grunge II	Alternative	Em|G|A|C	Grunge-style descending loop
+Dream Pop II	Alternative	Dmaj7|Amaj7|Bm7|Gmaj7	Airy, dream pop chord movement
+Ascending Drift	Ambient	Am|C|Dm|F	Slowly rising airy chords
+Frozen Stillness	Ambient	Em|D|C|D	Minimalistic and haunting
+Infinite Calm	Ambient	Gmaj7|Cmaj7|D|G	Soft shimmering major 7ths
+Crystal Fields	Ambient	D|A|Bm|G	Expansive field-like imagery
+Ocean Tides	Ambient	Fmaj7|C|G|Am	Flowing oceanic feel
+Twilight Air	Ambient	Cmaj7|Am7|Dm7|G	Gentle twilight jazz-infused bossa
+Soft Horizon	Ambient	Eb|Bb|Cm|Ab	Expansive atmospheric movement
+Ambient Fifths	Ambient	C5|G5|F5|C5	Open fifth-based drone cycle
+Aeolian Flow II	Ambient	Am|G|F|Dm	Warm Aeolian minor flow
+Cloud Shapes	Ambient	Dmaj7|Gmaj7|A|D	Gentle cloud-like progression
+Aurora Lights	Ambient	F|Gm|Bb|C	Bright, aurora-inspired sound
+Lunar Motion	Ambient	C|Am|Em|F	Nocturnal progression
+Andalusian with augmented V	Andalusian	Am|G|F|E+	Augmented dominant before resolving to tonic.
+Andalusian with iv6	Andalusian	Am|G|F6|E	Sixth on iv adds harmonic color.
+Andalusian with VI7	Andalusian	Am|G|F7|E	Dominant seventh on VI adds motion.
+Andalusian with stepwise bass	Andalusian	Am|G|F|E|D	Descending bass step adds a melodic line.
+Andalusian with i6/9	Andalusian	Am6/9|G|F|E7	Jazz tonic color before resolution.
+Andalusian with minor V7	Andalusian	Am|G|F|E7b9	Altered dominant increases tension.
+Andalusian with ivmaj7	Andalusian	Am|G|Fm7|E7	Modal color on subdominant minor 7.
+Andalusian with V7#9	Andalusian	Am|G|F|E7#9	Altered dominant with bluesy tension.
+Andalusian with V7b13	Andalusian	Am|G|F|E7b13	Altered dominant with chromatic color.
+Andalusian with passing ii	Andalusian	Am|G|Dm|F|E	Minor ii adds stepwise color before IV.
+Andalusian with IVmaj9	Andalusian	Am|G|Fmaj9|E	Extended IV chord enriches progression.
+Andalusian with #iv°7	Andalusian	Am|G|F#dim7|E	Diminished passing chord creates tension.
+"Salty Dog" Circle (A)	Bluegrass	A|F#7|B7|E7|A	Ragtime circle in A; bright turnaround.
+Plagal→Dominant Cadence (A)	Bluegrass	A|E|A|D|A|E|A	IV and V alternate around I; strong call-and-response.
+Mixolydian bVII Vamp (A)	Bluegrass	A|G|A|G|A|G|A|E	Modal bVII color; driving, two-chord vamp with V tag.
+Walk-Up to IV then V (A)	Bluegrass	A|A/C#|D|E|A	1–3–4 bass walk-up; lifts into chorus.
+Ballad Loop I–vi–IV–V (A)	Bluegrass	A|F#m|D|E|A	Lyrical loop with bluegrass groove.
+Plagal then V Cadence (A)	Bluegrass	A|D|A|E|A	IV→I then V→I close; reliable for end lines.
+12-Bar Quick-Change (D)	Bluegrass	D|G|D|D|G|G|D|D|A|G|D|A	12-bar with early IV; common in blues-leaning BG.
+8-Bar Quick-Change (D)	Bluegrass	D|G|D|D|G|G|D|A	Eight-bar variant; easy for instrumental breaks.
+Classic Tag Ending (D)	Bluegrass	D|A|D|D	Standard tag to extend or close.
+"Salty Dog" Circle (D)	Bluegrass	D|B7|E7|A7|D	Circle-of-fifths in D; brightens a chorus.
+Plagal→Dominant Cadence (D)	Bluegrass	D|A|D|G|D|A|D	Alternates IV and V for phrase shaping.
+Mixolydian bVII Vamp (D)	Bluegrass	D|C|D|C|D|C|D|A	Modal (♭VII=C); driving vamp with V tag.
+Modern Blues Minor	Blues	Am7|D9|Am7|Am7|Dm7|Dm7|Am7|Am7|E7|Dm7|Am7|E7	Modern minor-blues
+Delta Blues	Blues	G|G|G|G|C|C|G|G|D|C|G|D	Delta acoustic style
+Rock Blues	Blues	E5|A5|E5|E5|A5|A5|E5|E5|B5|A5|E5|B5	Rock-oriented blues power chords
+West Coast Blues	Blues	Bb7|Eb9|Bb7|F7|Eb9|Eb9|Bb7|G7|C7|F7|Bb7|F7	Sophisticated West Coast swing blues
+Swing Blues	Blues	F7|Bb7|F7|F7|Bb7|Bb7|F7|D7|G7|C7|F7|C7	Swing-era jazz blues
+Turnaround Blues	Blues	C7|C7|C7|C7|F7|F7|C7|A7|D7|G7|C7|G7	Classic turnaround use
+New Orleans Blues	Blues	C7|F7|C7|A7|Dm7|G7|C7|F7|C7|G7|C7|G7	New Orleans jazz feel
+Slow Drag Blues	Blues	G7|G7|G7|G7|C7|C7|G7|G7|D7|C7|G7|D7	Slow dragging groove
+Boogie Blues	Blues	E7|E7|E7|E7|A7|A7|E7|E7|B7|A7|E7|B7	Boogie-woogie foundation
+16-Bar Blues	Blues	C7|C7|F7|F7|C7|C7|G7|G7|C7|C7|F7|F7|C7|G7|C7|G7	Extended 16-bar blues form
+8-Bar Blues	Blues	C7|F7|C7|C7|G7|F7|C7|G7	Popular 8-bar blues structure
+Funky Blues	Blues	D9|G9|D9|D9|G9|G9|D9|A13|G9|D9|A13|D9	Funk-groove blues
+Smooth Turnaround	Bossa Nova	Fmaj7|E7|Am7|Ab7	Chromatic turnaround
+Saudade Flow	Bossa Nova	Gm7|C7|Fmaj7|D7	Melancholic saudade cycle
+Minor Bossa	Bossa Nova	Am7|Bm7b5|E7|Am7	Minor key bossa nova
+Samba Breeze	Bossa Nova	Cmaj7|A7|Dm7|G7	Relaxed samba-bossa
+Iberian Flavor	Bossa Nova	Dm7b5|G7b9|Cm7|F7	Spanish-flavored bossa
+Elegant Flow	Bossa Nova	Fmaj7|G13|Em7|A7	Elegant lounge-style progression
+Bossa Cadence	Bossa Nova	Am7|D9|Gmaj7|Cmaj7	Standard bossa cadence
+Lush Samba	Bossa Nova	Em7|A13|Dmaj7|Gmaj7	Extended jazz samba
+Carioca Vibe	Bossa Nova	Bm7b5|E7b9|Am7|A7	Classic Rio de Janeiro sound
+Samba Ballad	Bossa Nova	Gmaj7|F#7|Bm7|E7	Ballad-style bossa nova
+Smooth Coast	Bossa Nova	Cmaj7|G13|Fmaj7|E7	Coastal bossa harmony
+Samba Light	Bossa Nova	A7|Dm7|G7|Cmaj7	Light samba-jazz loop
+Gong–Zhi Cadence (D)	Chinese Style	D|Asus4|Bm|Asus2	I→V(sus)→vi→V(sus); suspended V shapes "zhi".
+Bamboo Plagal (D)	Chinese Style	D|Dadd2|Bm|A5	I→I(add2)→vi→V(5); neutralizes leading tone.
+Lantern Verse (D)	Chinese Style	D|Bm|A5|D	I→vi→V(5)→I; archetypal lyric bed.
+Zhi Drone (D)	Chinese Style	D/A|Asus2|Bm|D	I over 5-pedal; soft dominant shapes.
+Open-Fifth Return (D)	Chinese Style	D5|A5|Bm|D5	Fifths emphasize pentatonic spacing.
+Gong–Zhi Cadence (G)	Chinese Style	G|Dsus4|Em|Dsus2	I→V(sus)→vi→V(sus); pentatonic sustain on V.
+Bamboo Plagal (G)	Chinese Style	G|Gadd2|Em|D5	I(add2) → vi → V(5); glassy top tones.
+Lantern Verse (G)	Chinese Style	G|Em|D5|G	I→vi→V(5)→I; open-string guitar friendly.
+Zhi Drone (G)	Chinese Style	G/D|Dsus2|Em|G	5-pedal supports pentatonic melody.
+Open-Fifth Return (G)	Chinese Style	G5|D5|Em|G5	Fifths frame the minor vi color.
+Gong–Zhi Cadence (A)	Chinese Style	A|Esus4|F#m|Esus2	I→V(sus)→vi→V(sus); suspended V avoids harsh leading tone.
+Bamboo Plagal (A)	Chinese Style	A|Aadd2|F#m|E5	I(add2) → vi → V(5); broad, airy cadence.
+Yu Descent (D minor)	Chinese Style	Dm|C|Bb|A5	i→♭VII→♭VI→V(5); neutral dominant keeps pentatonic surface.
+Yu Plagal (D minor)	Chinese Style	Dm|Gsus2|Dm|Csus2	Suspended IV/♭VII cradle the tonic.
+Yu Drone (D minor)	Chinese Style	Dm/A|Csus2|Dm|Gsus2	5-pedal with pentatonic neighbors; gentle cadence.
+Yu Fifths Return (D minor)	Chinese Style	Dm|C5|Bb|Dm	Fifths and ♭VI color the close.
+Yu Descent (G minor)	Chinese Style	Gm|F|Eb|D5	i→♭VII→♭VI→V(5); minor-pentatonic close with fifths.
+Yu Plagal (G minor)	Chinese Style	Gm|Csus2|Gm|Fsus2	Suspended IV/♭VII around the tonic.
+Yu Drone (G minor)	Chinese Style	Gm/D|Fsus2|Gm|Csus2	5-pedal; pentatonic ornaments on top.
+Yu Fifths Return (G minor)	Chinese Style	Gm|F5|Eb|Gm	Fifths + ♭VI cadence; stable, folk cadence.
+Impressionist	Classical	Cmaj7|Dm7|Em7|Fmaj7	Impressionist harmony
+Modern Classical	Classical	Cmaj7#11|Fmaj7|Bb7#11|Ebmaj7	Modern classical harmony
+Minimalist	Classical	C|F|C|F	Minimalist repetition
+Baroque Sequence	Classical	Dm|G|C|F|Bdim|E|Am	Common Baroque harmonic sequence
+Romantic Cadence	Classical	F|G|Em|Am|Dm|G|C	Romantic era cadence pattern
+Sonata Allegro	Classical	C|G|Am|F|Dm|G|C	Typical sonata-allegro harmonic motion
+Beethoven Minor	Classical	Am|E|F|Dm|G|C|E7	Dramatic minor Beethoven-style
+Mozart Minuet	Classical	C|G|C|F|C|G|C	Classical minuet harmonic pattern
+Chopin Prelude	Classical	C|G|Am|F|Dm|G|C|E7	Romantic piano prelude style
+Debussy Impression	Classical	Cmaj7|Dm7|G7|Fmaj7	Debussy-style impressionist progression
+Ravel Harmony	Classical	Cmaj9|Fmaj7|G13|Cmaj7	Rich extended chords in impressionist style
+Baroque Cadential	Classical	G|D|G|C|D|G	Strong Baroque cadence sequence
+Honky Tonk Swing	Country	A|D|E7|A	Swinging honky tonk style
+Western Swing II	Country	D|F#7|G|A7	Jazzy western swing variation
+Country Rock Anthem	Country	E|A|B|C#m|A|B	Anthemic country rock
+Folk Revival	Country	Am|G|C|F	Folk-inspired country loop
+Western Honky Tonk	Country	E|A|B7|E	Classic honky tonk western style
+Country Ballad II	Country	F|Dm|Bb|C	Slow emotional country ballad
+Classic Outlaw	Country	E|B|A|E	Traditional outlaw rock-country
+Honky Tonk Blues	Country	A|D|E7|D	Honky tonk blues feel
+Bluegrass Jam	Country	G|C|D|Em|G	Extended bluegrass jam
+Western Swing Jam	Country	D|G|A7|D	Jazzy swing jam sequence
+Honky Tonk Swing II	Country	G|C|D7|G	Piano/steel guitar honky tonk swing
+Folk Ballad	Country	Am|C|F|G	Gentle folk-style country
+Phrygian Doom Grid (Drop C)	Djent	C5|Db5|C5|Bb5|Ab5|Bb5|C5|Db5	Tight b2/b7 lattice; archetypal low-C chug.
+Tritone Engine (Drop C)	Djent	C5|Gb5|C5|Gb5|C5|Db5|Bb5|Gb5	Tritone axis on C with side hits (b2/b6).
+7/8 (3+2+2) Chug (Drop C)	Djent	C5|Eb5|C5|D5|C5|Bb5|Ab5|Bb5	Odd-meter feel; phrygian and aeolian colors.
+♭VI–♭VII Lift (Drop C)	Djent	C5|Ab5|Bb5|C5|Ab5|Bb5|C5|Db5	Stadium bVI→bVII surges back to tonic.
+Sus4 Rake (Drop C)	Djent	Csus4|C5|Bb5|Ab5|Csus4|C5|Db5|C5	Suspended accents amid aeolian drops.
+Add9 Dissonance (Drop C)	Djent	Cadd9|Db5|Cadd9|Bb5|Cadd9|Ab5|Bb5|C5	Bright 9th shimmer contrasted with blunt power hits.
+Chromatic March (Drop C)	Djent	C5|B5|Bb5|A5|Ab5|A5|Bb5|B5	Strict chromatic descent/ascent against drilling kick.
+Pedal + Quartal Stack (Drop C)	Djent	C5|F5|Bb5|C5|Bb5|F5|C5|Db5	Fourth-based side chords over C pedal.
+Polymetric 4+4+5 (Drop C)	Djent	C5|Eb5|F5|C5|Bb5|C5|Db5|C5	Eleven-pulse impression from accent patterning.
+bII Hammer (Drop C)	Djent	C5|Db5|C5|Db5|C5|Bb5|Ab5|Gb5	Reiterated Neapolitan blows; extended fall.
+Phrygian Gallop (Drop B)	Djent	B5|C5|B5|A5|G5|A5|B5|C5	b2 spur hits with aeolian tail.
+Tritone Pendulum (Drop B)	Djent	B5|F5|B5|F5|B5|C5|Db5|B5	Pendular tritone with chromatic turnaround.
+Vaporwave	Electronic	Dmaj7|Gmaj7|Cmaj7|Fmaj7	Vaporwave aesthetic
+Deep Tech	Electronic	Dm7|Am7|Gm7|Cm7	Deep tech house harmonic loop
+Lofi Hip-Hop	Electronic	Fmaj7|Am7|Dm7|G7	Lofi hip-hop chill progression
+Psytrance	Electronic	Am|F|G|Em7	Psytrance hypnotic progression
+Tropical House	Electronic	C|G|Am|Fmaj7	Tropical house feel
+Minimal Techno II	Electronic	Cm|Fm|Gm|Ab	Minimal techno repetitive motif
+Chillwave II	Electronic	Fmaj7|Em7|Am7|Gmaj7	Warm chillwave progression
+Dub Tech	Electronic	Am|G|Dm|F	Dub techno variation
+Trance Uplift	Electronic	Dm|G|Am|C|F|G	Uplifting trance chord pattern
+Glitch	Electronic	Em7|Bm7|Am7|D7	Glitch electronic harmonic movement
+Psybient	Electronic	Dm|G|C|Fmaj7	Psybient ambient chords
+Vaporwave II	Electronic	Fmaj7|Cmaj7|Dm7|Gmaj7	Second vaporwave chord loop
+Tragic Destiny	Film Score	Em|C|Am|B7	Dark tragic resolution
+Rising Hope	Film Score	D|G|A|Bm	Hopeful and emotional rise
+Heroic Minor	Film Score	Cm|Bb|Ab|G	Strong heroic minor
+Intense Suspense	Film Score	Fm|Db|Eb|C	Suspense and intensity
+Dark Undercurrent	Film Score	Bm|A|G|F#	Ominous dark undercurrent
+Tragic Battle	Film Score	Gm|Eb|F|D	Tragic and combative
+Villain's Theme	Film Score	Em|G|C|B7	Ominous villain tension
+Victory March	Film Score	Ab|Eb|Fm|Db	Majestic victorious march
+Quiet Suspense	Film Score	Am|F|Dm|G	Subtle cinematic suspense
+Emotional Minor	Film Score	F#m|D|E|C#m	Emotional minor journey
+Epic Darkness	Film Score	Em|C|D|G	Dark but epic
+Enchanted Forest	Film Score	D|G|Em|A	Magical enchanted feel
+vi-IV-V-IV	Folk	Am|F|G|F	Minor folk cadence
+I-IV-ii-vi	Folk	C|F|Dm|Am	Introspective folk flow
+I-IV-V-I-IV	Folk	C|F|G|C|F	Extended folk hymn
+IV-vi-ii-V	Folk	F|Am|Dm|G	Flowing folk chorus
+vi-iii-IV-I	Folk	Am|Em|F|C	Gentle descending verse
+I-V-vi-IV-I	Folk	C|G|Am|F|C	Extended folk refrain
+I-IV-V-IV-V	Folk	C|F|G|F|G	Driving folk chorus
+IV-I-V-IV-I	Folk	F|C|G|F|C	Traditional folk chant
+G Folk Turn	Folk	G|D|Em|D	Same but in G
+D Folk Turn	Folk	D|A/C#|Bm|A	Folk song loop
+A Folk Turn	Folk	A|E|F#m|E	Soft and open-sounding
+E Folk Turn	Folk	E|B|C#m|B	Folk-friendly loop in E
+Funk Fusion	Funk	F#m7|B9|E13|A9	Jazz-fusion funk
+Funk Clave	Funk	Am7|D9|G13|C9	Latin-influenced funk
+Groove Cycle	Funk	C9|F9|G9|F9	Classic funk cycle
+Funk Rock Vamp	Funk	E7#9|E7#9|E7#9|E7#9	Hendrix-inspired vamp
+Funk IV-V	Funk	G7|A7|G7|A7	Simple IV–V funk vamp
+Minor 9 Vamp	Funk	Dm9|Dm9|Dm9|Dm9	Rich minor-9 vamp
+Funk Jam	Funk	F7|G7|F7|G7	Jam-band funk
+Funk Turnaround	Funk	Bb7|Ab7|Eb7|F7	Funky turnaround
+Funk Groove	Funk	C7|Eb7|F7|G7	Funk chromatic groove
+Funk Step	Funk	A9|C9|D9|E9	Stepwise funk
+Funk Circle	Funk	D7|G7|C7|F7	Circle of 4ths funk
+Funk Blues	Funk	E7|A7|B7|A7	Funky 12-bar blues
+I-V-IV-V	Gospel	C|G|F|G	Energetic gospel vamp
+IV-iii-ii-I	Gospel	F|Em|Dm|C	Descending gospel motion
+ii-V-I-IV	Gospel	Dm|G|C|F	Gospel cadence into IV
+IV-V-iii-vi	Gospel	F|G|Em|Am	Popular gospel bridge
+I-vi-iii-V	Gospel	C|Am|Em|G	Gospel storytelling flow
+I-V-ii-vi-IV	Gospel	C|G|Dm|Am|F	Extended gospel praise
+IV-vi-ii-V-I	Gospel	F|Am|Dm|G|C	Full gospel turnaround
+I-V-IV-V-I	Gospel	C|G|F|G|C	Common gospel refrain
+Andalusian (harm. V) (Am)	Harmonic Minor	Am|G|F|E7|Am	i–VII–VI with harmonic-minor dominant.
+Borrowed Chain w/ III+ (Am)	Harmonic Minor	Am|Dm|G|C+|F|E|Am	Color route through III+ before V→i.
+V/iv Tonicization (Am)	Harmonic Minor	Am|A7|Dm|E|Am	Applied dominant of iv (A7) then V→i.
+viio7/V Setup (Am)	Harmonic Minor	Am|D#dim7|E7|Am	Leading-tone diminished to V (vii°/V) then resolve.
+V/III → III+ Pivot (Am)	Harmonic Minor	Am|G7|C+|F|E|Am	Tonicize mediant; augmented mediant ⇒ VI ⇒ V.
+Neapolitan → V7(♭9) (Am)	Harmonic Minor	Am|Bb|E7b9|Am	♭II into altered dominant; heightened pull to i.
+Harmonic-Minor Authentic (Em)	Harmonic Minor	Em|Am|B|Em	i–iv–V–i in E minor; raised 7 (D♯) creates B major.
+ii° → V → i (Em)	Harmonic Minor	Em|F#dim|B|Em	Diminished supertonic precedes dominant.
+Phrygian Cadence (Em)	Harmonic Minor	Am/C|B|Em	iv⁶–V–i in E minor.
+Altered V(♭9) Close (Em)	Harmonic Minor	Em|B7b9|Em	B7♭9 from E harmonic minor's 6th (C).
+VI → V7 Drive (Em)	Harmonic Minor	Em|C|B7|Em	Aeolian VI then harmonic-minor V7.
+Augmented Mediant Link (Em)	Harmonic Minor	Em|G+|C|B|Em	III+ (G–B–D♯) appears in E harmonic minor.
+90s Sampled Style	Hip-Hop	F#m7|B7|Emaj7|Amaj7	Inspired by sampled jazz/funk
+Jazzy Boom Bap	Hip-Hop	Gm7|C7|Fmaj7|Dm7	Old-school jazz-hop
+Neo Boom Bap	Hip-Hop	Bm7|E7|Amaj7|F#m7	Modernized boom bap
+Trap Minor Loop	Hip-Hop	F#m|D|A|E	Classic minor trap loop
+Golden Era	Hip-Hop	Cm7|F7|Bbmaj7|Ebmaj7	Inspired by 90s NY sound
+Chill Night	Hip-Hop	Am7|D7|Gmaj7|Cmaj7	Relaxed night-time lo-fi feel
+Minor Keys	Hip-Hop	Gm|Eb|Bb|F	Dark trap/emo rap feel
+Smooth Cycle	Hip-Hop	F#m7|B7|Emaj7|C#m7	Smooth urban jazz rap
+Funk-Hop	Hip-Hop	Em7|A7|Dmaj7|Bm7	Funk-inspired rap backing
+Trap Banger	Hip-Hop	C#m|A|E|B	High-energy trap progression
+Classic Rhyme	Hip-Hop	Fm7|Bb7|Ebmaj7|Cm7	Jazzy rhyme scheme foundation
+Trap Melancholy	Hip-Hop	Bm|G|D|A	Sad trap guitar-style chords
+E Hirajoshi: VI→V(sus)→i(add2)	Hirajoshi	Cmaj7(#11)|Bsus4|Em|Em(add2)	Extended VI color collapses into a suspended dominant and enriched tonic.
+A Hirajoshi: i–VI–sus2–i	Hirajoshi	Am|F|Asus2|Am	A Hirajoshi (A–B–C–E–F); Asus2 (A–B–E) fits perfectly, keeping the palette open.
+A Hirajoshi: Add2 + Power V	Hirajoshi	Am(add2)|Fmaj7|E5|Am	Fmaj7 (F–A–C–E) stays inside; E5 provides dominant punch without G#.
+A Hirajoshi: sus2 Pivot	Hirajoshi	Asus2|F|Am|E5	Suspended II brightens before the open-fifth V.
+A Hirajoshi: Bass on 3̂	Hirajoshi	Am|F/A|Asus2|Am	Shared A in bass smooths the motion; all tones within the set.
+A Hirajoshi: VI Pad	Hirajoshi	Am|Fmaj7|Am|E5	Lyrical VI via Fmaj7; neutral V cadence.
+A Hirajoshi: VI–i–sus2–VI	Hirajoshi	F|Am|Asus2|F	Alternating IV/VI colors around the tonic.
+A Hirajoshi: i–sus2–VI–V	Hirajoshi	Am|Asus2|F|E5	Suspended tonic moves to VI then a stark V power close.
+A Hirajoshi: Add2 Return	Hirajoshi	Am(add2)|F|E5|Am	Add2 on i keeps B in play; dominant fifths resolve cleanly.
+D Hirajoshi: i–♭VI–sus2–i	Hirajoshi	Dm|B♭|Dsus2|Dm	D Hirajoshi (D–E–F–A–B♭); Dsus2 (D–E–A) is fully diatonic.
+D Hirajoshi: Add2 + V(5)	Hirajoshi	Dm(add2)|B♭|A5|Dm	A5 = A–E (both in set); crisp cadential push without C#.
+D Hirajoshi: sus2 Cadence	Hirajoshi	Dsus2|B♭|Dm|A5	Suspended tonic resolves to minor; open-fifth V closes.
+Minimalist Indie	Indie	Am|C|F|C	Stripped-down indie chords
+Indie Groove	Indie	A7|D7|G|C	Groovy indie feel
+Cinematic Indie	Indie	Em|C|Am|G	Expansive cinematic style
+Lush Indie	Indie	Cmaj7|Fmaj7|G6|Am7	Lush indie texture
+Indie Hook	Indie	E|C#m|A|B	Catchy indie hook
+Bright Indie Pop	Indie	F|G|Am|Bb	Bright indie sound
+Psychedelic Indie	Indie	D|A|G|F	Psychedelic progression
+Indie Drive	Indie	C|G|D|Em	Driving indie energy
+Dream Indie	Indie	G|Bm|A|D	Dream pop-inspired
+Post-Indie	Indie	A|G|D|E	Post-indie rock feel
+Indie Minimal Groove	Indie	Em|G|D|C	Minimal indie progression
+Iwato Pedal Vamp (A)	Iwato Scale	D5/A|G5/A|Eb5/A|D5/A	A-center; A-Iwato tones {A,B♭,D,E♭,G}.
+♭II Push Cadence (A)	Iwato Scale	Eb5/A|D5/A|G5/A|D5/A	♭II jab then IV⇄♭VII cycling.
+Alternating IV/♭II (A)	Iwato Scale	D5/A|Eb5/A|D5/A|Eb5/A	Two-chord figure; spare, modal cadence.
+Rising Pedal Cells (A)	Iwato Scale	D5/A|G5/A|Eb5/A|G5/A	IV→♭VII→♭II ascent over A pedal.
+♭VII Hang + Turn (A)	Iwato Scale	G5/A|G5/A|D5/A|Eb5/A	Long ♭VII; quick IV; ♭II hit to close.
+Broad Cadential Loop (A)	Iwato Scale	Eb5/A|G5/A|D5/A|G5/A	♭II→♭VII→IV contour resolves to pedal.
+Heavy Downbeat Tag (A)	Iwato Scale	D5/A|D5/A|Eb5/A|G5/A	Double IV; ♭II color; finish on ♭VII.
+A Drone Block (A)	Iwato Scale	D5/A|Eb5/A|G5/A|D5/A(hold)	Sustained IV cadence to confirm A tonic.
+Iwato Pedal Vamp (D)	Iwato Scale	G5/D|Ab5/D|C5/D|G5/D	D-center; D-Iwato tones {D,E♭,G,A♭,C}.
+♭II Push Cadence (D)	Iwato Scale	Ab5/D|G5/D|C5/D|G5/D	♭II hit then IV/♭VII churn.
+Alternating IV/♭II (D)	Iwato Scale	G5/D|Ab5/D|G5/D|Ab5/D	Two-chord refrain leveraging 4̂ and ♭2̂.
+Rising Pedal Cells (D)	Iwato Scale	G5/D|C5/D|Ab5/D|C5/D	IV→♭VII→♭II with repeat launch.
+Giant Steps (simplified)	Jazz	Gmaj7|Bb7|Ebmaj7|F#7|Bmaj7|D7|Gmaj7	Simplified Coltrane changes
+Rhythm Changes A	Jazz	Cmaj7|Am7|Dm7|G7|Em7|Am7|Dm7|G7	A section of rhythm changes
+Rhythm Changes B	Jazz	E7|Am7|D7|Dm7|G7	Bridge of rhythm changes
+Turnaround i	Jazz	Cmaj7|E7|Am7|C7	Jazz turnaround progression
+Turnaround ii	Jazz	Am7|D7|Dm7|G7	Minor turnaround
+Modal Interchange	Jazz	Cmaj7|Fm7|Bb7|Cmaj7	Borrowed chords from parallel minor
+Chromatic ii-V	Jazz	Dm7|Db7|Cmaj7	Tritone substitution
+Extended Dominant	Jazz	Dm7|G13b9|Cmaj7	Extended altered dominant
+Minor ii-V-i	Jazz	Dm7b5|G7alt|Cm6	Minor key ii-V-i
+Jazz Ballad	Jazz	Cmaj7|A7|Dm7|G7sus4|G7|Em7|Am7|Dm7|G7	Sophisticated ballad progression
+iiø7-V7-i	Jazz	Dm7b5|G7alt|Cm7	Minor jazz progression with half-diminished ii chord
+I-vi-iii-vi	Jazz	Cmaj7|Am7|Em7|Am7	Looping minor pop-jazz fusion
+Side-Slip Vamps (E)	Jazz Fusion	E7(#11)|F7(#11)|E7(#11)	Half-step planing of Lydian-dominant; slick tension/release.
+Lydian b7 Chain (A)	Jazz Fusion	A7(#11)|D7(#11)|G7(#11)	Dominant chain using Lydian-dominant (MM4) colors.
+Modal Interchange Pop (C)	Jazz Fusion	Cmaj9|Ebmaj7(#11)|F13|G13	Borrowed ♭III Lydian then functional lift.
+Wayne-ish Minor Vamp (D)	Jazz Fusion	Dm9|E♭maj7(#11)|Dm9	D Dorian center with Lydian upper neighbor.
+Backdoor + Tritone Mix (F)	Jazz Fusion	Gm9|C13|E7alt|Fmaj9	Backdoor ii–V, then tritone slip into I.
+So-What Quartal (D)	Jazz Fusion	Dm11|Em11|Dm11	Dorian quartal stack; space for melodic lines.
+Lydian Lift (E)	Jazz Fusion	Emaj9(#11)|F#7sus4|Emaj9(#11)	Lydian tonic with suspended V of ii-like push.
+Altered Dominant Walk (B♭)	Jazz Fusion	Cm7|F7(#9,b13)|Bbmaj9	Altered extensions on V; lush major resolution.
+Minor bII→V (A m)	Jazz Fusion	Am9|Bb7(#11)|E7alt|AmMaj9	Neapolitan-type ♭II7 to Valt → iMaj.
+Chromatic Backdoor (G)	Jazz Fusion	Em9|A13|Ab13|Gmaj9	Backdoor ii–V with a chromatic neighbor dominant.
+Lydian Dominant Pivot (Db)	Jazz Fusion	Db7(#11)|Gbmaj7|Db7(#11)	Lydian-dominant against IV-maj pivot.
+Secondary Dominant Chain (C)	Jazz Fusion	Cmaj9|A7alt|Dm9|G13	V/vi → ii → V; modern tensions on dominants.
+E Rhumba-Blues	Major Blues Scale	E9|E9|E9|E9|A9|A9|E9|E9|B9|A9|E9|B9	Rhumba comp; lead stays in E major blues over I and pivots mixolydian on V.
+E Stop-Time Hits	Major Blues Scale	E7(stops)|—|—|—|A7(stops)|—|E7(stops)|—|B7(stops)|A7|E7|B7	Leave air for the 1–2–♭3 slides from E major blues.
+E Jazz-Blues Turn (VI–II–V)	Major Blues Scale	E7|A7|E7|E7|A7|A#°7|E7|E7|C#7|F#7|B7|B7	VI7–II7–V7 tail. Keep E major-blues flavor on I; hit 3rds/7ths on dominants.
+E Backdoor Tag	Major Blues Scale	E7|E7|E7|E7|A7|A7|E7|E7|D7|A7|E7|B7	bVII7→IV7 in bars 9–10; big vocal lift.
+E Ragtime Circle Turn	Major Blues Scale	E7|E7|E7|E7|A7|A7|E7|E7|E7|C#7|F#7|B7	I–VI7–II7–V7 cadence; E major-blues phrasing on top.
+G-major 12-Bar (9ths/13ths)	Major Blues Scale	G9|G13|G9|G9|C9|C13|G9|G9|D13|C9|G9|D9	Funky extensions; major-blues lead keeps the "major" brightness.
+G "Stormy Monday" Changes	Major Blues Scale	G7|C7|G7|G7|C7|C#°7|G7|E7#9|Am7|D7|G7|D7	Jazz-blues variant with #IV° and VI7→ii→V.
+iii7 â†’ V7/vi	Substitutions	C|E7|Am|F	iii leads to vi; secondary dominant. C Mixolydian/C Lydian over E7
+I â†’ V7/IV	Substitutions	C7|F|Dm|G|C	Tonic can become secondary dominant. C Lydian Dominant/C Mixolydian
+IVmaj7 â†’ ii7	Substitutions	C|Dm7|G|C	Smooth subdominant resolution. C Dorian/C Major
+IV â†’ iiÃ¸7	Substitutions	C|Dm7b5|G|C	Minor half-diminished as soft IV. C Locrian/C Dorian b2
+iii7 â†’ bIIImaj7	Substitutions	C|Ebmaj7|F|C	Modal mixture mediant substitution. C Aeolian/C Lydian b3
+V â†’ #Vdim7	Substitutions	C|G#dim7|C	Augmented/diminished tension. C Diminished/C Harmonic Minor
+ii â†’ IVm7	Substitutions	C|Fm7|G|C	Minor iv as predominant. C Aeolian/C Dorian
+I â†’ VIm7b5	Substitutions	Am7b5|Dm|G|C	Weak tonic substitute in jazz. C Locrian/C Harmonic Minor
+V â†’ V7alt	Substitutions	Dm|G7alt|C	Altered dominant scale. C Altered/C Super Locrian
+iii7 â†’ V7	Substitutions	C|Em7|G|C	Tonic prolongation via voice-leading. C Major/C Lydian over iii7
+V7 â†’ V13	Substitutions	Dm|G13|Cmaj7	Extended dominant chord. C Mixolydian/C Lydian Dominant
+IV â†’ IIsus2	Substitutions	C|Dsus2|G|C	Modern suspended substitution. C Major/C Dorian
+Salsa	World	Cmaj7|Dm7|G7|Cmaj7	Classic salsa chord progression
+Indian Classical	World	C|Dm|E7|Fmaj7	Inspired by Carnatic/ Hindustani music
+Arabic Oud	World	Dm|Gm|A7|Dm	Oud-style modal progression
+Balkan Folk II	World	Em|G|Am|B7	Complex Balkan dance progression
+Indian Drone	World	Am|Am7|Dm7|G7	Indian classical drone style
+Arabic Modulation	World	Dm|Eb|F|G7	Maqam modulation progression
+Sephardic	World	Em|Am|B7|Em	Sephardic Jewish modal pattern
+Brazilian Samba II	World	F|G7|Cmaj7|Dm7	Fast samba rhythm progression
+Flamenco Rasgueado	World	Am|G|Bb|Am	Flamenco strumming pattern
+Celtic Minor	World	Em|C|D|Em	Dorian-inspired Celtic minor
+Middle Eastern II	World	Em|F|G|Bb	Arabic melodic minor pattern
+Flamenco Cadence	World	Am|Bb|C|E7	Flamenco typical cadence
+`;
+
+const lines = rawData.trim().split('\n').slice(1); // Skip header
+
+let idCounter = 0;
+
+// Add chord transposition utilities
+const NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const FLAT_NOTES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+function parseChord(chord) {
+    // Extract root note and quality from chord symbol
+    const match = chord.match(/^([A-G][#b]?)(.*)$/);
+    if (!match) return null;
+    
+    const [, root, quality] = match;
+    return { root: normalizeNote(root), quality };
+}
+
+function normalizeNote(note) {
+    const flatToSharp = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
+    return flatToSharp[note] || note;
+}
+
+function transposeChord(chord, semitones) {
+    const parsed = parseChord(chord);
+    if (!parsed) return chord;
+    
+    const rootIndex = NOTES.indexOf(parsed.root);
+    if (rootIndex === -1) return chord;
+    
+    const newRootIndex = (rootIndex + semitones + 12) % 12;
+    const newRoot = NOTES[newRootIndex];
+    
+    return newRoot + parsed.quality;
+}
+
+function getKeyOffset(fromKey, toKey) {
+    const fromIndex = NOTES.indexOf(normalizeNote(fromKey));
+    const toIndex = NOTES.indexOf(normalizeNote(toKey));
+    return (toIndex - fromIndex + 12) % 12;
+}
+
+function transposeProgression(chords, fromKey, toKey) {
+    const offset = getKeyOffset(fromKey, toKey);
+    return chords.map(chord => transposeChord(chord, offset));
+}
+
+// Extract roman numeral analysis from progression names and patterns
+function extractRomanNumerals(name, chords) {
+    // Try to extract from the name first
+    const romanMatch = name.match(/([IVX♭#°+sus\d\s\–\-]+)/);
+    if (romanMatch) {
+        return romanMatch[1].replace(/\s*\([A-G][#b]?\)/, '').trim();
+    }
+    
+    // Fallback patterns for common progressions
+    const chordCount = chords.length;
+    if (chordCount === 4) {
+        // Common 4-chord patterns
+        if (name.includes('vi-IV-I-V')) return 'vi - IV - I - V';
+        if (name.includes('I-V-vi-IV')) return 'I - V - vi - IV';
+        if (name.includes('I-vi-IV-V')) return 'I - vi - IV - V';
+        if (name.includes('ii-V-I')) return 'ii - V - I - vi';
+    }
+    
+    // Default fallback
+    return 'I - ? - ? - ?';
+}
+
+function extractOriginalKey(name, chords) {
+    // Extract key from parentheses in name
+    const keyMatch = name.match(/\(([A-G][#b]?)\)/);
+    if (keyMatch) return keyMatch[1];
+    
+    // Try to determine from first chord
+    const firstChord = chords[0];
+    const parsed = parseChord(firstChord);
+    return parsed ? parsed.root : 'C';
+}
+
+const progressions = lines.map(line => {
+    const parts = line.split('\t');
+    if (parts.length < 4) return null;
+    
+    const name = parts[0].trim();
+    const chords = parts[2].trim().split('|');
+    
+    return {
+        id: `prog-${idCounter++}`,
+        name,
+        category: parts[1].trim(),
+        chords,
+        description: parts[3].trim(),
+        romanNumerals: extractRomanNumerals(name, chords),
+        originalKey: extractOriginalKey(name, chords)
+    };
+}).filter(p => p !== null);
+
+const AVAILABLE_KEYS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+const categories = [...new Set(progressions.map(p => p.category))].sort();
+return { progressions, categories, transposeProgression, AVAILABLE_KEYS };
+})();
+const { progressions, categories, transposeProgression, AVAILABLE_KEYS } = D;
+const U = (() => {
+const progressionListEl = document.getElementById('progression-list');
+const categoryFilterEl = document.getElementById('category-filter');
+const practiceNameEl = document.getElementById('practice-name');
+const practiceDescriptionEl = document.getElementById('practice-description');
+const chordsDisplayEl = document.getElementById('chords-display');
+
+function renderProgressionList(progressions) {
+    progressionListEl.innerHTML = '';
+    if (progressions.length === 0) {
+        progressionListEl.innerHTML = '<p>No progressions found.</p>';
+        return;
+    }
+    const fragment = document.createDocumentFragment();
+    progressions.forEach(prog => {
+        const card = document.createElement('div');
+        card.className = 'progression-card';
+        card.dataset.id = prog.id;
+        card.innerHTML = `
+            <h3>${prog.name}</h3>
+            <span class="category">${prog.category}</span>
+            <div class="roman-numerals-card">${prog.romanNumerals}</div>
+            <div class="chords">${prog.chords.join(' – ')}</div>
+            <p class="description">${prog.description}</p>
+        `;
+        fragment.appendChild(card);
+    });
+    progressionListEl.appendChild(fragment);
+}
+
+function populateCategoryFilter(categories) {
+    const fragment = document.createDocumentFragment();
+    categories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        fragment.appendChild(option);
+    });
+    categoryFilterEl.appendChild(fragment);
+}
+
+function updatePracticeModal(progression) {
+    practiceNameEl.textContent = progression.name;
+    practiceDescriptionEl.textContent = progression.description;
+    
+    // Add roman numeral display
+    const romanNumeralsEl = document.getElementById('roman-numerals');
+    if (romanNumeralsEl) {
+        romanNumeralsEl.textContent = progression.romanNumerals;
+    }
+
+    updateChordsDisplay(progression.chords);
+    initializePianoKeyboard();
+}
+
+function updateChordsDisplay(chords) {
+    chordsDisplayEl.innerHTML = '';
+    chords.forEach((chord, index) => {
+        const chordBox = document.createElement('div');
+        chordBox.className = 'chord-box';
+        chordBox.id = `chord-${index}`;
+        chordBox.textContent = chord;
+        chordsDisplayEl.appendChild(chordBox);
+    });
+}
+
+
+// Piano keyboard functionality
+const PIANO_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const BLACK_KEYS = ['C#', 'D#', 'F#', 'G#', 'A#'];
+
+function initializePianoKeyboard() {
+    const keyboardContainer = document.getElementById('piano-keyboard');
+    if (!keyboardContainer) return;
+    
+    keyboardContainer.innerHTML = '';
+    
+    // Create white keys first
+    const whiteKeyContainer = document.createElement('div');
+    whiteKeyContainer.className = 'white-keys';
+    
+    const blackKeyContainer = document.createElement('div');
+    blackKeyContainer.className = 'black-keys';
+    
+    PIANO_NOTES.forEach((note, index) => {
+        const key = document.createElement('div');
+        key.className = BLACK_KEYS.includes(note) ? 'piano-key black-key' : 'piano-key white-key';
+        key.dataset.note = note;
+        key.setAttribute('title', note);
+        
+        if (BLACK_KEYS.includes(note)) {
+            blackKeyContainer.appendChild(key);
+        } else {
+            whiteKeyContainer.appendChild(key);
+        }
+    });
+    
+    keyboardContainer.appendChild(whiteKeyContainer);
+    keyboardContainer.appendChild(blackKeyContainer);
+}
+
+function getChordNotes(chord) {
+    const parsed = parseChord(chord);
+    if (!parsed) return [];
+    
+    const rootIndex = PIANO_NOTES.indexOf(parsed.root);
+    if (rootIndex === -1) return [];
+    
+    // Basic chord patterns - this is simplified but covers most cases
+    let intervals = [0]; // root
+    
+    if (parsed.quality.includes('maj7') || parsed.quality.includes('Maj7')) {
+        intervals = [0, 4, 7, 11]; // major 7
+    } else if (parsed.quality.includes('m7') || parsed.quality.includes('min7')) {
+        intervals = [0, 3, 7, 10]; // minor 7
+    } else if (parsed.quality.includes('7')) {
+        intervals = [0, 4, 7, 10]; // dominant 7
+    } else if (parsed.quality.includes('m') || parsed.quality.includes('min')) {
+        intervals = [0, 3, 7]; // minor triad
+    } else if (parsed.quality.includes('dim')) {
+        intervals = [0, 3, 6]; // diminished
+    } else if (parsed.quality.includes('+') || parsed.quality.includes('aug')) {
+        intervals = [0, 4, 8]; // augmented
+    } else if (parsed.quality.includes('sus4')) {
+        intervals = [0, 5, 7]; // sus4
+    } else if (parsed.quality.includes('sus2')) {
+        intervals = [0, 2, 7]; // sus2
+    } else {
+        intervals = [0, 4, 7]; // major triad default
+    }
+    
+    return intervals.map(interval => PIANO_NOTES[(rootIndex + interval) % 12]);
+}
+
+function parseChord(chord) {
+    const match = chord.match(/^([A-G][#b]?)(.*)$/);
+    if (!match) return null;
+    
+    const [, root, quality] = match;
+    return { root: normalizeNote(root), quality };
+}
+
+function normalizeNote(note) {
+    const flatToSharp = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
+    return flatToSharp[note] || note;
+}
+
+function updateActiveChordUI(chordIndex) {
+    const chordBoxes = chordsDisplayEl.querySelectorAll('.chord-box');
+    chordBoxes.forEach((box, index) => {
+        if (index === chordIndex) {
+            box.classList.add('active');
+        } else {
+            box.classList.remove('active');
+        }
+    });
+    
+    // Update piano keyboard
+    updatePianoKeyboard(chordIndex);
+}
+
+function updatePianoKeyboard(chordIndex) {
+    const keyboardContainer = document.getElementById('piano-keyboard');
+    if (!keyboardContainer) return;
+    
+    // Clear all active states
+    const allKeys = keyboardContainer.querySelectorAll('.piano-key');
+    allKeys.forEach(key => key.classList.remove('active'));
+    
+    // Get current chord
+    const chordsDisplay = document.getElementById('chords-display');
+    const chordBoxes = chordsDisplay.querySelectorAll('.chord-box');
+    if (chordIndex >= 0 && chordIndex < chordBoxes.length) {
+        const currentChord = chordBoxes[chordIndex].textContent;
+        const chordNotes = getChordNotes(currentChord);
+        
+        // Highlight chord notes
+        chordNotes.forEach(note => {
+            const key = keyboardContainer.querySelector(`[data-note="${note}"]`);
+            if (key) {
+                key.classList.add('active');
+            }
+        });
+    }
+}
+
+function updateBeatIndicator(beatIndex) {
+    // beatIndex is 0-3
+    for (let i = 1; i <= 4; i++) {
+        const indicator = document.getElementById(`beat-${i}`);
+        if (i === beatIndex + 1) {
+            indicator.classList.add('active');
+        } else {
+            indicator.classList.remove('active');
+        }
+    }
+}
+return { renderProgressionList, populateCategoryFilter, updatePracticeModal, updateActiveChordUI, updateBeatIndicator, updateChordsDisplay };
+})();
+const { renderProgressionList, populateCategoryFilter, updatePracticeModal, updateActiveChordUI, updateBeatIndicator, updateChordsDisplay } = U;
+const P = (() => {
+let audioContext;
+let clickBuffer;
+
+async function setupAudio() {
+    if (audioContext) return;
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Fetch and decode the click sound
+    const response = await fetch('data:audio/mpeg;base64,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oNDb5l8f9sfbx6sZhZ9dZFywdCCGqvMldtW3cneWTc+vTbV//9SVd3vaqHX2qbeBcEkVJcyFpIvjIuE+iUJZE69CVyTjnUyWjV3ZYyahLbWSXb/9DCgMp7XyCnqqVsc9qDrOvRVdibJ9V01K9EYuid0//r////////IQVXeKnIp5bf+78AWdRkrYjqWDhOFaXzsWNre1K1svwXklmLrHq1T6rGZt1tv7kdFeHZjOYtk/fsFQtL3l11bzd0VGs56tS10KUZDzxeedd/////DxM2eIqndm2xe2wVQS5XCkAliBrJFp6ujSvs50OwFkJg4AlMkI7CeKTcjwKVLrU0QjBsX/swYqJ667ro7M7oOSER0AteutbLLRXT7rWLctBp1X///LGbu7xLwml0t2DAajYcQoIxQEoKl5JWLBmkE4DYSMoTDKTJAk2xSHTHnny9n6wManG9jKR+H/zbgEdRpFT7YByXvTJEbHVP37XX6+W///+5JEegACnD9SeeYTwFOl2p9gYmwJ+KE/5hhuQVYNajzGJOD/UDRIjVDs7rZWndAAEB1aBoNhzFTo7Cqq194mNn5UViIcnaISFSeDcFLbhC113wjPVIo021IL6g4OvXjANfckBXkUbsqNKCch5pC7gOUbWCam5dn////yqgAJQBwfRvoE0g+ZWaIZoXAMIwZAR40iYOI4dZErK+mwdZEtGqdEpIjaLV/LUcBVAUBAICkY0BEqyvsdCQwfCrhYKgJcYPGAZGrvd6////Y7qJB0mSntoiAKq4BRAHQRB4XBFQGlRoNHQMg4GhkSquRTQ01YTCQVGAUCgICgImSDoaPCoSCoSPHgkFRih4x40YBQEVRwoBSyP+tHUV5YqnLIlSpYr0oTTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//uSRJKP8p0bxMHpMMBTQanMJSkmAAABpAAAACAAADSAAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==');
+    const arrayBuffer = await response.arrayBuffer();
+    clickBuffer = await audioContext.decodeAudioData(arrayBuffer);
+}
+
+function playSound(buffer, time, accent = false) {
+    if (!audioContext || !buffer) return;
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = accent ? 1.0 : 0.6;
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    source.start(time);
+}
+
+class PracticeSession {
+    constructor(chords, onChordChange, onBeatChange) {
+        this.chords = chords;
+        this.onChordChange = onChordChange;
+        this.onBeatChange = onBeatChange;
+        this.bpm = 120;
+        this.isPlaying = false;
+        this.currentBeat = 0; // 0-3 for a 4/4 bar
+        this.currentChordIndex = 0;
+        
+        // Use 1 beat per chord for long progressions, 4 beats for short ones
+        this.beatsPerChord = chords.length > 4 ? 1 : 4;
+        this.totalBeats = chords.length > 4 ? chords.length : 4;
+        
+        this.nextNoteTime = 0.0;
+        this.scheduleAheadTime = 0.1; // seconds
+        this.lookahead = 25.0; // ms
+        this.timerID = null;
+        
+        setupAudio();
+    }
+
+    setBpm(bpm) {
+        this.bpm = bpm;
+    }
+
+    nextNote() {
+        const secondsPerBeat = 60.0 / this.bpm;
+        this.nextNoteTime += secondsPerBeat;
+
+        // Advance the beat
+        this.currentBeat++;
+        
+        if (this.beatsPerChord === 1) {
+            // For long progressions: 1 beat per chord
+            if (this.currentBeat >= this.totalBeats) {
+                this.currentBeat = 0;
+            }
+            this.currentChordIndex = this.currentBeat;
+        } else {
+            // For short progressions: 4 beats per chord
+            if (this.currentBeat >= this.beatsPerChord) {
+                this.currentBeat = 0;
+                this.currentChordIndex = (this.currentChordIndex + 1) % this.chords.length;
+            }
+        }
+    }
+    
+    scheduleNote(beatNumber, time) {
+        // Play sound
+        const isDownbeat = beatNumber === 0 || (this.beatsPerChord === 1);
+        playSound(clickBuffer, time, isDownbeat);
+
+        // Update UI right when the sound is scheduled to play
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                this.onChordChange(this.currentChordIndex);
+                
+                // For beat indicators, show position within 4-beat cycle
+                const displayBeat = this.beatsPerChord === 1 ? beatNumber % 4 : beatNumber;
+                this.onBeatChange(displayBeat);
+            });
+        }, (time - audioContext.currentTime) * 1000);
+    }
+    
+    scheduler() {
+        while (this.nextNoteTime < audioContext.currentTime + this.scheduleAheadTime) {
+            this.scheduleNote(this.currentBeat, this.nextNoteTime);
+            this.nextNote();
+        }
+        this.timerID = setTimeout(() => this.scheduler(), this.lookahead);
+    }
+
+    start() {
+        if (this.isPlaying) return;
+        
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+
+        this.isPlaying = true;
+        this.currentBeat = 0;
+        this.currentChordIndex = -1; // Start before the first chord
+        
+        // Prime the loop
+        if (this.currentChordIndex === -1) {
+            this.currentChordIndex = 0;
+        }
+
+        this.nextNoteTime = audioContext.currentTime + 0.1;
+        this.onChordChange(this.currentChordIndex);
+        this.scheduler();
+    }
+
+    stop() {
+        this.isPlaying = false;
+        clearTimeout(this.timerID);
+        this.onBeatChange(-1); // Turn off all beat indicators
+    }
+}
+return { PracticeSession };
+})();
+const { PracticeSession } = P;
+
+let practiceSession;
+let filteredProgressions = [...progressions];
+let currentProgression = null;
+
+function init() {
+    const progressionListEl = document.getElementById('progression-list');
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    const modal = document.getElementById('practice-modal');
+    const closeModalBtn = document.getElementById('close-modal');
+
+    populateCategoryFilter(categories);
+    renderProgressionList(filteredProgressions);
+
+    progressionListEl.addEventListener('click', (e) => {
+        const card = e.target.closest('.progression-card');
+        if (card) {
+            const id = card.dataset.id;
+            const progression = progressions.find(p => p.id === id);
+            if (progression) {
+                openPracticeModal(progression);
+            }
+        }
+    });
+    
+    searchInput.addEventListener('input', handleFilterChange);
+    categoryFilter.addEventListener('change', handleFilterChange);
+
+    closeModalBtn.addEventListener('click', () => {
+        closePracticeModal();
+    });
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closePracticeModal();
+        }
+    });
+}
+
+function handleFilterChange() {
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedCategory = categoryFilter.value;
+
+    filteredProgressions = progressions.filter(p => {
+        const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm) || p.description.toLowerCase().includes(searchTerm) || p.chords.join(' ').toLowerCase().includes(searchTerm);
+        return matchesCategory && matchesSearch;
+    });
+
+    renderProgressionList(filteredProgressions);
+}
+
+function openPracticeModal(progression) {
+    const modal = document.getElementById('practice-modal');
+    currentProgression = progression;
+    updatePracticeModal(progression);
+
+    if (practiceSession) {
+        practiceSession.stop();
+    }
+    
+    // Set key selector to original key
+    const keySelect = document.getElementById('key-select');
+    keySelect.value = progression.originalKey;
+    
+    practiceSession = new PracticeSession(progression.chords, updateActiveChordUI, updateBeatIndicator);
+
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const bpmSlider = document.getElementById('bpm-slider');
+    const bpmValue = document.getElementById('bpm-value');
+
+    playPauseBtn.textContent = 'Play';
+    playPauseBtn.onclick = () => {
+        if (practiceSession.isPlaying) {
+            practiceSession.stop();
+            playPauseBtn.textContent = 'Play';
+        } else {
+            practiceSession.start();
+            playPauseBtn.textContent = 'Pause';
+        }
+    };
+    
+    bpmSlider.oninput = () => {
+        const bpm = parseInt(bpmSlider.value);
+        bpmValue.textContent = bpm;
+        practiceSession.setBpm(bpm);
+    };
+    
+    // Key transpose handler
+    keySelect.onchange = () => {
+        const newKey = keySelect.value;
+        const transposedChords = transposeProgression(progression.chords, progression.originalKey, newKey);
+        updateChordsDisplay(transposedChords);
+        
+        // Update practice session with new chords
+        if (practiceSession) {
+            const wasPlaying = practiceSession.isPlaying;
+            practiceSession.stop();
+            practiceSession = new PracticeSession(transposedChords, updateActiveChordUI, updateBeatIndicator);
+            practiceSession.setBpm(parseInt(bpmSlider.value));
+            
+            if (wasPlaying) {
+                practiceSession.start();
+                playPauseBtn.textContent = 'Pause';
+            }
+        }
+    };
+    
+    // Initialize BPM
+    practiceSession.setBpm(parseInt(bpmSlider.value));
+
+    modal.style.display = 'flex';
+}
+
+function closePracticeModal() {
+    if (practiceSession) {
+        practiceSession.stop();
+    }
+    const modal = document.getElementById('practice-modal');
+    modal.style.display = 'none';
+}
+
+init();
+</script>
+</body>
+</html>
